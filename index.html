@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Real-Time Weather</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f0c29;
+            background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            transition: background 1.5s ease;
+        }
+
+        /* DAY TIME BACKGROUNDS */
+        body.sunny-day {
+            background: linear-gradient(to bottom, #56CCF2 0%, #2F80ED 40%, #F2994A 100%);
+        }
+
+        body.rainy-day {
+            background: linear-gradient(to bottom, #536976, #292E49, #536976);
+        }
+
+        body.cloudy-day {
+            background: linear-gradient(to bottom, #bdc3c7, #8e9eab, #606c88);
+        }
+
+        body.snowy-day {
+            background: linear-gradient(to bottom, #E0EAFC, #CFDEF3, #A1C4FD);
+        }
+
+        body.foggy-day {
+            background: linear-gradient(to bottom, #bdc3c7, #d7d9db, #989898);
+        }
+
+        /* NIGHT TIME BACKGROUNDS */
+        body.clear-night {
+            background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+        }
+
+        body.rainy-night {
+            background: linear-gradient(to bottom, #1a1a2e, #16213e, #0f3460);
+        }
+
+        body.cloudy-night {
+            background: linear-gradient(to bottom, #2c3e50, #34495e, #2c3e50);
+        }
+
+        body.snowy-night {
+            background: linear-gradient(to bottom, #1e3c72, #2a5298, #7e8ba3);
+        }
+
+        body.foggy-night {
+            background: linear-gradient(to bottom, #434343, #000000, #434343);
+        }
+
+        /* STORM (same for day/night) */
+        body.stormy {
+            background: linear-gradient(to bottom, #141E30, #243B55, #0F2027);
+        }
+
+        /* Animated stars background */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Rain effect - Day and Night */
+        body.rainy-day .stars::before,
+        body.rainy-night .stars::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(transparent, rgba(255,255,255,0.15) 50%, transparent);
+            background-size: 100% 15px;
+            animation: rain 0.3s linear infinite;
+        }
+
+        @keyframes rain {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 0% 100%; }
+        }
+
+        /* Snow effect - Day and Night */
+        body.snowy-day .stars::after,
+        body.snowy-night .stars::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, white, transparent),
+                radial-gradient(2px 2px at 60px 70px, white, transparent),
+                radial-gradient(1px 1px at 50px 50px, white, transparent),
+                radial-gradient(1px 1px at 130px 80px, white, transparent),
+                radial-gradient(2px 2px at 90px 10px, white, transparent);
+            background-size: 200px 200px;
+            animation: snow 3s linear infinite;
+        }
+
+        @keyframes snow {
+            0% { background-position: 0 0, 0 0, 0 0, 0 0, 0 0; }
+            100% { background-position: 200px 200px, 200px 200px, 200px 200px, 200px 200px, 200px 200px; }
+        }
+
+        /* Hide stars during daytime */
+        body.sunny-day .star,
+        body.rainy-day .star,
+        body.cloudy-day .star,
+        body.snowy-day .star,
+        body.foggy-day .star {
+            opacity: 0;
+        }
+
+        /* Show stars at night */
+        body.clear-night .star,
+        body.cloudy-night .star {
+            opacity: 1;
+        }
+
+        /* Storm effect (lightning flash) */
+        body.stormy {
+            animation: lightning 4s infinite;
+        }
+
+        @keyframes lightning {
+            0%, 100% { filter: brightness(1); }
+            48%, 52% { filter: brightness(1); }
+            50% { filter: brightness(2); }
+        }
+
+        /* Floating particles */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.7; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+        }
+
+        .navbar {
+            background: rgba(15, 12, 41, 0.7) !important;
+            backdrop-filter: blur(30px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            padding: 1.2rem 0;
+            position: relative;
+            z-index: 100;
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .navbar .form-control {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            padding: 0.7rem 1.5rem;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .navbar .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .navbar .form-control:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.3), 0 0 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .navbar .btn {
+            border-radius: 50px;
+            padding: 0.7rem 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .navbar .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            margin-top: 2.5rem;
+            margin-bottom: 2.5rem;
+            padding: 0 15px;
+        }
+
+        .main-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(30px);
+            border-radius: 40px;
+            padding: 3rem;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                        0 0 100px rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeInScale 0.8s ease;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        h1 {
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #667eea 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 3rem;
+            font-size: clamp(1.8rem, 5vw, 3.5rem);
+            text-align: center;
+            letter-spacing: 1px;
+            text-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 25px;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            height: 100%;
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(240, 147, 251, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:hover {
+            transform: translateY(-20px) rotateX(5deg);
+            box-shadow: 0 30px 70px rgba(102, 126, 234, 0.4),
+                        0 0 60px rgba(102, 126, 234, 0.3);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+            color: white;
+            font-weight: 700;
+            font-size: 1.4rem;
+            padding: 1.5rem;
+            border: none;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .card-header::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.8s ease;
+        }
+
+        .card:hover .card-header::after {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .border-primary .card-header {
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.8) 0%, rgba(245, 87, 108, 0.8) 100%);
+        }
+
+        .card-body {
+            padding: 2rem 1.8rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-body ul {
+            margin: 0;
+        }
+
+        .card-body li {
+            padding: 1rem 0;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 400;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .card-body li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .card-body li:last-child {
+            border-bottom: none;
+        }
+
+        .card-body li:hover {
+            padding-left: 25px;
+            color: #ffffff;
+        }
+
+        .card-body li:hover::before {
+            left: 5px;
+            color: #f093fb;
+        }
+
+        .card-body li span {
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .display-6 {
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #667eea 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 4rem 0 2.5rem 0;
+            text-align: center;
+            font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .table-responsive {
+            margin-top: 2.5rem;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .table {
+            margin-bottom: 0;
+            color: white;
+        }
+
+        .table thead {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+            color: white;
+        }
+
+        .table thead th {
+            border: none;
+            padding: 1.5rem 1rem;
+            font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+            font-weight: 700;
+            vertical-align: middle;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .table tbody tr {
+            transition: all 0.4s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .table tbody tr:hover {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.2) 0%, rgba(240, 147, 251, 0.2) 100%);
+            transform: scale(1.02);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .table tbody th {
+            font-weight: 700;
+            color: #f093fb;
+        }
+
+        .table td, .table th {
+            vertical-align: middle;
+            padding: 1.2rem 1rem;
+            font-size: clamp(0.75rem, 1.5vw, 0.95rem);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 2rem 1.5rem;
+            }
+
+            .navbar-brand {
+                font-size: 1.4rem;
+            }
+
+            .card-body {
+                padding: 1.5rem 1.2rem;
+            }
+
+            .card-header {
+                font-size: 1.2rem;
+                padding: 1.2rem;
+            }
+
+            .table thead th {
+                padding: 1rem 0.5rem;
+            }
+
+            .table td, .table th {
+                padding: 1rem 0.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .main-container {
+                padding: 1.5rem 1rem;
+                border-radius: 30px;
+            }
+
+            .navbar .form-control {
+                font-size: 0.9rem;
+                padding: 0.6rem 1.2rem;
+            }
+
+            .navbar .btn {
+                padding: 0.6rem 1.5rem;
+                font-size: 0.85rem;
+            }
+
+            .card-body li {
+                font-size: 0.9rem;
+                padding: 0.8rem 0;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 12, 41, 0.5);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            border: 2px solid rgba(15, 12, 41, 0.5);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #f093fb 100%);
+        }
+
+        /* Glow effect */
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.5),
+                            0 0 40px rgba(102, 126, 234, 0.3),
+                            0 0 60px rgba(102, 126, 234, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(240, 147, 251, 0.5),
+                            0 0 60px rgba(240, 147, 251, 0.3),
+                            0 0 90px rgba(240, 147, 251, 0.2);
+            }
+        }
+
+        .main-container {
+            animation: fadeInScale 0.8s ease, glow 4s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="stars"></div>
+
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">⚡ SKYSCOPE</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation" style="background: rgba(255,255,255,0.2);">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <div class="container-fluid p-0">
+                    <div class="d-flex justify-content-end mt-3 mt-lg-0">
+                        <form class="d-flex w-100" role="search" style="max-width: 500px;">
+                            <input id="city" class="form-control me-2" type="search"
+                                placeholder="Enter city name..." aria-label="Search" />
+                            <button class="btn" type="submit" id="submit">Search</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="main-container">
+            <h1>
+                <span id="cityName"></span>, <span id="country"></span>
+            </h1>
+            <main>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
+                    <div class="col">
+                        <div class="card">
+                            <div class="card-header">
+                                🌡️ Climate
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled">
+                                    <li>Temperature is <span id="temp_c"></span></li>
+                                    <li>Feels like is <span id="feels_temp"></span></li>
+                                    <li>Min Temperature is <span id="min_temp"></span></li>
+                                    <li>Max temperature is <span id="max_temp"></span></li>
+                                    <li>Humidity is <span id="humidity"></span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card">
+                            <div class="card-header">
+                                💨 Air Quality
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled">
+                                    <li>Condition is <span id="condition_text"></span></li>
+                                    <li>Air Quality Index is <span id="aqi"></span></li>
+                                    <li>PM 2.5 is <span id="pm2_5"></span></li>
+                                    <li>PM 10 is <span id="pm10"></span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card border-primary">
+                            <div class="card-header">
+                                ⏰ Time
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled">
+                                    <li>Local time is <span id="localtime"></span></li>
+                                    <li>Last Update is <span id="last_updated"></span></li>
+                                    <li>Sunrise at <span id="sunrise"></span></li>
+                                    <li>Sunset at <span id="sunset"></span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <h2 class="display-6">Weather Data Across Cities</h2>
+                <div class="table-responsive">
+                    <table id="weatherTable" class="table text-center">
+                        <thead>
+                            <tr>
+                                <th style="width: 12%;">City</th>
+                                <th style="width: 11%;">Temp (°C)</th>
+                                <th style="width: 11%;">Feels (°C)</th>
+                                <th style="width: 13%;">Condition</th>
+                                <th style="width: 11%;">Local Time</th>
+                                <th style="width: 13%;">Last Updated</th>
+                                <th style="width: 10%;">AQI</th>
+                                <th style="width: 9%;">PM2.5</th>
+                                <th style="width: 10%;">PM10</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Create animated stars
+        function createStars() {
+            const starsContainer = document.querySelector('.stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.width = Math.random() * 3 + 'px';
+                star.style.height = star.style.width;
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+        createStars();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

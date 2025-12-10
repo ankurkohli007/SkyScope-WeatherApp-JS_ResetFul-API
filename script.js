@@ -7,47 +7,136 @@ const options = {
     }
 };
 
-// // Function to change background based on weather
-// function updateBackground(conditionText) {
-//     const body = document.body;
-//     const condition = conditionText.toLowerCase();
+// canvas for weather animations
+let canvas, ctx, particles = [];
+let animationId;
 
-//     // Remove all previous weather classes
-//     body.className = '';
+function createCanvas() {
+    canvas = document.createElement('canvas');
+    canvas.id = 'weatherCanvas';
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.pointerEvents = 'none';
+    canvas.style.zIndex = '1';
+    document.body.appendChild(canvas);
+    
+    ctx = canvas.getContext('2d');
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+}
 
-//     // Check weather condition and add appropriate class
-//     if (condition.includes('rain') || condition.includes('drizzle') || condition.includes('shower')) {
-//         body.classList.add('rainy');
-//     }
-//     else if (condition.includes('sunny') || condition.includes('clear')) {
-//         body.classList.add('sunny');
-//     }
-//     else if (condition.includes('cloud') || condition.includes('overcast')) {
-//         body.classList.add('cloudy');
-//     }
-//     else if (condition.includes('snow') || condition.includes('sleet') || condition.includes('blizzard')) {
-//         body.classList.add('snowy');
-//     }
-//     else if (condition.includes('thunder') || condition.includes('storm')) {
-//         body.classList.add('stormy');
-//     }
-//     else if (condition.includes('mist') || condition.includes('fog')) {
-//         body.classList.add('foggy');
-//     }
-//     else {
-//         body.classList.add('default');
-//     }
-// }
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
 
-// Function to change background based on weather AND time of day
+// Particle Class
+class Particle {
+    constructor(type) {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.type = type;
+        
+        if (type === 'rain') {
+            this.speed = Math.random() * 5 + 10;
+            this.length = Math.random() * 20 + 10;
+        } else if (type === 'snow') {
+            this.speed = Math.random() * 1 + 0.5;
+            this.size = Math.random() * 3 + 2;
+            this.drift = Math.random() * 0.5 - 0.25;
+        }
+    }
+    
+    update() {
+        if (this.type === 'rain') {
+            this.y += this.speed;
+            if (this.y > canvas.height) {
+                this.y = -this.length;
+                this.x = Math.random() * canvas.width;
+            }
+        } else if (this.type === 'snow') {
+            this.y += this.speed;
+            this.x += this.drift;
+            if (this.y > canvas.height) {
+                this.y = -10;
+                this.x = Math.random() * canvas.width;
+            }
+        }
+    }
+    
+    draw() {
+        if (this.type === 'rain') {
+            ctx.strokeStyle = 'rgba(174, 194, 224, 0.5)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y);
+            ctx.lineTo(this.x, this.y + this.length);
+            ctx.stroke();
+        } else if (this.type === 'snow') {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+}
+
+// Animation Functions
+function createParticles(type, count) {
+    particles = [];
+    for (let i = 0; i < count; i++) {
+        particles.push(new Particle(type));
+    }
+}
+
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    particles.forEach(particle => {
+        particle.update();
+        particle.draw();
+    });
+    
+    animationId = requestAnimationFrame(animate);
+}
+
+function stopAnimation() {
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+    }
+    if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    particles = [];
+}
+
+function startWeatherAnimation(condition) {
+    stopAnimation();
+    
+    if (condition.includes('rain') || condition.includes('drizzle') || condition.includes('shower')) {
+        createParticles('rain', 150);
+        animate();
+    } else if (condition.includes('snow') || condition.includes('sleet') || condition.includes('blizzard')) {
+        createParticles('snow', 200);
+        animate();
+    }
+    // TODO: add animation for other conditions
+}
+
+// Function to change background based on weather & time of day
 function updateBackground(conditionText, localtime) {
     const body = document.body;
     const condition = conditionText.toLowerCase();
 
-    // Determine if it's day or night (based on hour)
+    // check if it's day or night (based on hour)
     const date = new Date(localtime.replace(" ", "T"));
     const hour = date.getHours();
-    const isNight = hour < 6 || hour >= 18; // Night is 6 PM to 6 AM
+    // Night is 6 PM to 6 AM
+    const isNight = hour < 6 || hour >= 18; 
 
     // Remove all previous weather classes
     body.className = '';
@@ -74,6 +163,9 @@ function updateBackground(conditionText, localtime) {
     else {
         body.classList.add(isNight ? 'clear-night' : 'sunny-day');
     }
+    
+    // Start weather animation
+    startWeatherAnimation(condition);
 }
 
 // formatting time
@@ -259,6 +351,9 @@ submit.addEventListener("click", (e) => {
 
     getWeather(city);
 });
+
+// Initialize canvas on page load
+createCanvas();
 
 // default city
 getWeather("Genoa");

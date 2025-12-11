@@ -16,7 +16,7 @@ It allows users to search for any city or location worldwide and instantly view 
 ---
 
 ## 🚀 Live Demo of SkyScope WeatherApp
-Check out the live version of this game: [Click here for weather update](https://ankurkohli007.github.io/SkyScope-WeatherApp-JS_ResetFul-API/)
+Check out the live version of this weather app: [Click here for weather update](https://ankurkohli007.github.io/SkyScope-WeatherApp-JS_ResetFul-API/)
 ---
 
 ## 📁 Project Structure

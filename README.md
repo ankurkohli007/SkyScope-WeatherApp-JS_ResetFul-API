@@ -67,7 +67,7 @@ SkyScope allows users to:
 - Weather Result Card
 - Temperature Display Section
 - Additional Info (humidity, sunrise, sunset, AQI, and so on.)
-- Finally, last searched city-weather in a table format
+- Finally, last searched city weather in a table format
 
 **Bootstrap ensures:**
 
@@ -155,4 +155,91 @@ The app changes the entire background theme based on:
 
 These classes define background gradients or images applied through Bootstrap-based layout.
 
+#### 4️⃣ Table Auto-Update System (Latest 5 Searches)
 
+**Every time a user searches for a city:**
+
+- The weather data is displayed on the main card
+- A compact summary row is added to the history table
+- If the city already exists in the table, its row is updated
+- If more than 5 cities exist, the oldest row is removed
+
+**Columns include:**
+
+- Temperature
+- Feels like
+- Condition
+- Local time
+- Last updated
+- AQI
+- PM2.5
+- PM10
+
+**This creates a "recent weather history" without refreshing the page.**
+
+#### 5️⃣ Time Formatting Utility
+
+**The function converts API timestamps to a clean 12-hour format:**
+
+```bash
+10:45 AM
+07:15 PM
+```
+**This improves readability and consistency for:**
+
+- Local time
+- Last updated time
+
+#### 6️⃣ Event Handling (Search Button)
+
+The search button:
+
+-  Prevents default form behavior
+-  Reads the city input
+-  Updates the title displaying the selected city
+-  Calls getWeather(city)
+
+**Bootstrap is used for form controls and layout.**
+
+#### 7️⃣ Default Behavior
+
+**On page load:**
+
+- Canvas is initialized
+- Weather is automatically fetched for the default city:
+```bash
+Genoa
+```
+
+This allows the user to see a working example instantly.
+
+#### 8️⃣ Error Handling
+
+**The app handles:**
+
+- Invalid city names
+- Missing API data
+- Unexpected API failures
+
+Errors are logged in the console for debugging.
+
+#### 🧩 Key Features Enabled by app.js
+
+- Real-time weather fetching
+- Weather-tailored animations
+- Day/night smart background
+- Auto updating 5 row history table
+- Responsive Bootstrap interface
+- Smooth DOM updates (no page reloads)
+- API driven air quality information
+- Clean AM/PM time formatting
+
+### 🔮 Future Enhancements
+
+**Potential improvements:**
+
+- Add geolocation based weather fetching
+- Add 5 day / hourly forecast
+- Add dark & light theme toggle
+- Implement search history using localStorage
+- Improve animations and icon sets

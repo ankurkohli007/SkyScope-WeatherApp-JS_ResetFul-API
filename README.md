@@ -100,6 +100,7 @@ const options = {
 };
 
 The app calls the endpoint:
+
 ```bash
 https://weatherapi-com.p.rapidapi.com/forecast.json?q={city}&days=1&aqi=yes
 ```

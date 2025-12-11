@@ -24,7 +24,7 @@ Check out the live version of this game: [Click here for weather update](https:/
 ## 📁 Project Structure
 
 ```bash
-SkyScope-WeatherApp-JS_ResetFul-API/
+SkyScope-WeatherApp-JS_RESTFul-API/
 │
 ├── index.html # Main UI with Bootstrap components
 ├── app.js # Core weather logic + API integration

@@ -98,6 +98,7 @@ const options = {
         'x-rapidapi-host': 'weatherapi-com.p.rapidapi.com'
     }
 };
+```
 
 The app calls the endpoint:
 

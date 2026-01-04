@@ -25,7 +25,7 @@ Check out the live version of this weather app: [Click here for weather update](
 SkyScope-WeatherApp-JS_RESTFul-API/
 │
 ├── index.html # Main UI with Bootstrap components
-├── app.js # Core weather logic + API integration
+├── script.js # Core weather logic + API integration
 └── README.md # Project documentation
 ```
 

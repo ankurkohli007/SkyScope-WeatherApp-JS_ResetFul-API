@@ -57,7 +57,7 @@ SkyScope allows users to:
 - Placeholder elements updated dynamically using JavaScript  
 - Included external resources:
   - Bootstrap CDN
-  - `app.js`
+  - `script.js`
 
 **Key UI Components:**
 
